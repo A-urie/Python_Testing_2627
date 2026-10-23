@@ -9,6 +9,16 @@ def client():
     with server.app.test_client() as client:
         yield client
 
+@pytest.fixture
+def sample_data(monkeypatch):
+    clubs = [{"name": "Test Club", "email": "test@club.co", "points": "10"}]
+    competitions = [
+        {"name": "Test Comp", "date": "2030-01-01 10:00:00", "numberOfPlaces": "25"}
+    ]
+    monkeypatch.setattr(server, 'clubs', clubs)
+    monkeypatch.setattr(server, 'competitions', competitions)
+    return clubs, competitions
+
 
 def test_show_summary_with_known_email(client):
     email = server.clubs[0]['email']
@@ -29,3 +39,12 @@ def test_unknown_email_displays_error_message(client):
     )
     assert response.status_code == 200
     assert b'Sorry, that email was not found.' in response.data
+
+def test_purchase_places_deducts_club_points(client, sample_data):
+    clubs, competitions = sample_data
+    client.post(
+        '/purchasePlaces',
+        data={'competition': 'Test Comp', 'club': 'Test Club', 'places': '3'},
+    )
+    assert int(clubs[0]['points']) == 7
+    assert int(competitions[0]['numberOfPlaces']) == 22
