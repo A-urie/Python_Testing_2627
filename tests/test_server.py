@@ -20,3 +20,12 @@ def test_show_summary_with_unknown_email_does_not_crash(client):
     response = client.post('/showSummary', data={'email': 'inconnu@example.com'})
     assert response.status_code == 302
     assert response.headers['Location'].endswith('/')
+
+def test_unknown_email_displays_error_message(client):
+    response = client.post(
+        '/showSummary',
+        data={'email': 'inconnu@example.com'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b'Sorry, that email was not found.' in response.data
