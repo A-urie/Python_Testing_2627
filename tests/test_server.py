@@ -48,3 +48,15 @@ def test_purchase_places_deducts_club_points(client, sample_data):
     )
     assert int(clubs[0]['points']) == 7
     assert int(competitions[0]['numberOfPlaces']) == 22
+
+def test_purchase_places_refused_when_not_enough_points(client, sample_data):
+    clubs, competitions = sample_data
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Test Comp', 'club': 'Test Club', 'places': '11'},
+    )
+    assert response.status_code == 200
+    assert b'Not enough points' in response.data
+    assert int(clubs[0]['points']) == 10
+    assert int(competitions[0]['numberOfPlaces']) == 25
+    
