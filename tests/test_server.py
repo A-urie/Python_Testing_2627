@@ -95,4 +95,35 @@ def test_purchase_more_than_available_places_refused(client, sample_data):
     assert b'Not enough places' in response.data
     assert int(clubs[0]['points']) == 10
     assert int(competitions[0]['numberOfPlaces']) == 5
+
+def test_book_unknown_competition_shows_error(client, sample_data):
+    response = client.get('/book/Inconnue/Test%20Club', follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Something went wrong' in response.data
+
+
+def test_book_unknown_club_shows_error(client, sample_data):
+    response = client.get('/book/Test%20Comp/Inconnu', follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Something went wrong' in response.data
+
+
+def test_purchase_unknown_competition_shows_error(client, sample_data):
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Inconnue', 'club': 'Test Club', 'places': '2'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b'Something went wrong' in response.data
+
+
+def test_purchase_unknown_club_shows_error(client, sample_data):
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Test Comp', 'club': 'Inconnu', 'places': '2'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b'Something went wrong' in response.data
     
