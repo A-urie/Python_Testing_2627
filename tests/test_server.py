@@ -164,5 +164,14 @@ def test_book_past_competition_refused(client, sample_data):
     assert response.status_code == 200
     assert b'already over' in response.data
 
+def test_points_board_is_public_and_lists_all_clubs(client, sample_data):
+    clubs, competitions = sample_data
+    clubs.append({"name": "Other Club", "email": "other@club.co", "points": "5"})
+    response = client.get('/pointsDisplay')
+    assert response.status_code == 200
+    assert b'Test Club' in response.data
+    assert b'Other Club' in response.data
+    assert b'test@club.co' not in response.data
+
     
     
