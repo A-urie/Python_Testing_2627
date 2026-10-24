@@ -3,6 +3,9 @@ from datetime import datetime
 from flask import Flask,render_template,request,redirect,flash,url_for
 
 
+MAX_PLACES_PER_COMPETITION = 12
+
+
 def loadClubs():
     with open('clubs.json') as c:
          listOfClubs = json.load(c)['clubs']
@@ -17,6 +20,25 @@ def loadCompetitions():
 def isPast(competition):
     competitionDate = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
     return competitionDate < datetime.now()
+
+def parsePlaces(value):
+    try:
+        places = int(value)
+    except (TypeError, ValueError):
+        return None
+    if places <= 0:
+        return None
+    return places
+
+def getPurchaseError(club, competition, placesRequired):
+    if placesRequired > int(club['points']):
+        return 'Not enough points to book that many places.'
+    if placesRequired > int(competition['numberOfPlaces']):
+        return 'Not enough places available in this competition.'
+    alreadyBooked = competition.get('bookedPlaces', {}).get(club['name'], 0)
+    if alreadyBooked + placesRequired > MAX_PLACES_PER_COMPETITION:
+        return 'You cannot book more than 12 places in a competition.'
+    return None
 
 
 app = Flask(__name__)
@@ -63,31 +85,22 @@ def purchasePlaces():
     if isPast(competition):
         flash('This competition is already over.')
         return render_template('welcome.html', club=club, competitions=competitions)
-    try:
-        placesRequired = int(request.form.get('places', ''))
-    except ValueError:
-        placesRequired = 0
-    if placesRequired <= 0:
+    placesRequired = parsePlaces(request.form.get('places'))
+    if placesRequired is None:
         flash('Please enter a valid number of places.')
         return render_template('welcome.html', club=club, competitions=competitions)
-    if placesRequired > int(club['points']):
-        flash('Not enough points to book that many places.')
-        return render_template('welcome.html', club=club, competitions=competitions)
-    if placesRequired > int(competition['numberOfPlaces']):
-        flash('Not enough places available in this competition.')
+    error = getPurchaseError(club, competition, placesRequired)
+    if error:
+        flash(error)
         return render_template('welcome.html', club=club, competitions=competitions)
     booked = competition.setdefault('bookedPlaces', {})
     alreadyBooked = booked.get(club['name'], 0)
-    if alreadyBooked + placesRequired > 12:
-        flash('You cannot book more than 12 places in a competition.')
-        return render_template('welcome.html', club=club, competitions=competitions)
     competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
     club['points'] = int(club['points'])-placesRequired
     booked[club['name']] = alreadyBooked + placesRequired
 
     flash('Great-booking complete!')
     return render_template('welcome.html', club=club, competitions=competitions)
-
 
 @app.route('/pointsDisplay')
 def pointsDisplay():
