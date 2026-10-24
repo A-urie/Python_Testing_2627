@@ -126,4 +126,19 @@ def test_purchase_unknown_club_shows_error(client, sample_data):
     )
     assert response.status_code == 200
     assert b'Something went wrong' in response.data
+
+@pytest.mark.parametrize('places', ['', 'abc', '0', '-3'])
+def test_purchase_invalid_places_shows_error(client, sample_data, places):
+    clubs, competitions = sample_data
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Test Comp', 'club': 'Test Club', 'places': places},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b'valid number of places' in response.data
+    assert int(clubs[0]['points']) == 10
+    assert int(competitions[0]['numberOfPlaces']) == 25
+
+    
     
