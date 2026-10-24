@@ -46,7 +46,6 @@ def book(competition,club):
         flash("Something went wrong-please try again")
         return render_template('welcome.html', club=club, competitions=competitions)
 
-
 @app.route('/purchasePlaces',methods=['POST'])
 def purchasePlaces():
     competition = [c for c in competitions if c['name'] == request.form['competition']][0]
@@ -54,6 +53,9 @@ def purchasePlaces():
     placesRequired = int(request.form['places'])
     if placesRequired > int(club['points']):
         flash('Not enough points to book that many places.')
+        return render_template('welcome.html', club=club, competitions=competitions)
+    if placesRequired > int(competition['numberOfPlaces']):
+        flash('Not enough places available in this competition.')
         return render_template('welcome.html', club=club, competitions=competitions)
     booked = competition.setdefault('bookedPlaces', {})
     alreadyBooked = booked.get(club['name'], 0)
