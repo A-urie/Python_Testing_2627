@@ -52,7 +52,13 @@ def purchasePlaces():
     if not competition or not club:
         flash("Something went wrong-please try again")
         return redirect(url_for('index'))
-    placesRequired = int(request.form['places'])
+    try:
+        placesRequired = int(request.form.get('places', ''))
+    except ValueError:
+        placesRequired = 0
+    if placesRequired <= 0:
+        flash('Please enter a valid number of places.')
+        return render_template('welcome.html', club=club, competitions=competitions)
     if placesRequired > int(club['points']):
         flash('Not enough points to book that many places.')
         return render_template('welcome.html', club=club, competitions=competitions)
@@ -70,6 +76,7 @@ def purchasePlaces():
 
     flash('Great-booking complete!')
     return render_template('welcome.html', club=club, competitions=competitions)
+
 
 # TODO: Add route for points display
 
