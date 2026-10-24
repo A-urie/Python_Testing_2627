@@ -59,4 +59,28 @@ def test_purchase_places_refused_when_not_enough_points(client, sample_data):
     assert b'Not enough points' in response.data
     assert int(clubs[0]['points']) == 10
     assert int(competitions[0]['numberOfPlaces']) == 25
+
+def test_purchase_more_than_12_places_refused(client, sample_data):
+    clubs, competitions = sample_data
+    clubs[0]['points'] = '20'
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Test Comp', 'club': 'Test Club', 'places': '13'},
+    )
+    assert response.status_code == 200
+    assert b'more than 12' in response.data
+    assert int(clubs[0]['points']) == 20
+    assert int(competitions[0]['numberOfPlaces']) == 25
+
+
+def test_purchase_cumulative_places_above_12_refused(client, sample_data):
+    clubs, competitions = sample_data
+    clubs[0]['points'] = '20'
+    data = {'competition': 'Test Comp', 'club': 'Test Club', 'places': '8'}
+    client.post('/purchasePlaces', data=data)
+    data['places'] = '5'
+    response = client.post('/purchasePlaces', data=data)
+    assert b'more than 12' in response.data
+    assert int(clubs[0]['points']) == 12
+    assert int(competitions[0]['numberOfPlaces']) == 17
     
