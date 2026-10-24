@@ -140,5 +140,29 @@ def test_purchase_invalid_places_shows_error(client, sample_data, places):
     assert int(clubs[0]['points']) == 10
     assert int(competitions[0]['numberOfPlaces']) == 25
 
+def test_purchase_past_competition_refused(client, sample_data):
+    clubs, competitions = sample_data
+    competitions.append(
+        {'name': 'Old Comp', 'date': '2020-01-01 10:00:00', 'numberOfPlaces': '25'}
+    )
+    response = client.post(
+        '/purchasePlaces',
+        data={'competition': 'Old Comp', 'club': 'Test Club', 'places': '2'},
+    )
+    assert response.status_code == 200
+    assert b'already over' in response.data
+    assert int(clubs[0]['points']) == 10
+    assert int(competitions[1]['numberOfPlaces']) == 25
+
+
+def test_book_past_competition_refused(client, sample_data):
+    clubs, competitions = sample_data
+    competitions.append(
+        {'name': 'Old Comp', 'date': '2020-01-01 10:00:00', 'numberOfPlaces': '25'}
+    )
+    response = client.get('/book/Old%20Comp/Test%20Club')
+    assert response.status_code == 200
+    assert b'already over' in response.data
+
     
     
