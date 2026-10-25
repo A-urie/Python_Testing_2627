@@ -1,6 +1,11 @@
-from locust import HttpUser, task, between
+from locust import HttpUser, between, task
 
 EMAIL = 'john@simplylift.co'
+PURCHASE = {
+    'competition': 'Spring Festival',
+    'club': 'Simply Lift',
+    'places': '1',
+}
 
 
 class SecretaryUser(HttpUser):
@@ -21,7 +26,7 @@ class SecretaryUser(HttpUser):
     def update_points(self):
         self.client.post(
             '/purchasePlaces',
-            data={'competition': 'Spring Festival', 'club': 'Simply Lift', 'places': '1'},
+            data=PURCHASE,
             name='/purchasePlaces (points update)',
         )
 
