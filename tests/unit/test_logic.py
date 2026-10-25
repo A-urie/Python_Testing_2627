@@ -26,12 +26,14 @@ def make(points='10', places='25', booked=None, name='Club A'):
     (' 4 ', 4),
     ('+3', 3),
     ('007', 7),
+    ('9999', 9999),
+    ('\t5\n', 5),
 ])
 def test_parse_places_valid(value, expected):
     assert server.parsePlaces(value) == expected
 
 
-@pytest.mark.parametrize('value', ['', 'abc', '0', '-3', None, ' ', '2.5', '1e2', '1,5'])
+@pytest.mark.parametrize('value', ['', 'abc', '0', '-3', None, ' ', '2.5', '1e2', '1,5', '-0', '12abc'])
 def test_parse_places_invalid(value):
     assert server.parsePlaces(value) is None
 
