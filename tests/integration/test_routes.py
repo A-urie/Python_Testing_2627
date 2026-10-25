@@ -173,5 +173,17 @@ def test_points_board_is_public_and_lists_all_clubs(client, sample_data):
     assert b'Other Club' in response.data
     assert b'test@club.co' not in response.data
 
+def test_book_valid_competition_shows_booking_page(client, sample_data):
+    response = client.get('/book/Test%20Comp/Test%20Club')
+    assert response.status_code == 200
+    assert b'Test Comp' in response.data
+    assert b'Places available: 25' in response.data
+
+
+def test_logout_redirects_to_home(client):
+    response = client.get('/logout')
+    assert response.status_code == 302
+    assert response.headers['Location'].endswith('/')
+
     
     
