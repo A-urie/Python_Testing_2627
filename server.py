@@ -1,25 +1,31 @@
 import json
 from datetime import datetime
-from flask import Flask,render_template,request,redirect,flash,url_for
 
+from flask import (
+    Flask, flash, redirect, render_template, request, url_for
+)
 
 MAX_PLACES_PER_COMPETITION = 12
 
 
 def loadClubs():
     with open('clubs.json') as c:
-         listOfClubs = json.load(c)['clubs']
-         return listOfClubs
+        listOfClubs = json.load(c)['clubs']
+        return listOfClubs
 
 
 def loadCompetitions():
     with open('competitions.json') as comps:
-         listOfCompetitions = json.load(comps)['competitions']
-         return listOfCompetitions
+        listOfCompetitions = json.load(comps)['competitions']
+        return listOfCompetitions
+
 
 def isPast(competition):
-    competitionDate = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
+    competitionDate = datetime.strptime(
+        competition['date'], '%Y-%m-%d %H:%M:%S'
+    )
     return competitionDate < datetime.now()
+
 
 def parsePlaces(value):
     try:
@@ -29,6 +35,7 @@ def parsePlaces(value):
     if places <= 0:
         return None
     return places
+
 
 def getPurchaseError(club, competition, placesRequired):
     if placesRequired > int(club['points']):
@@ -47,11 +54,13 @@ app.secret_key = 'something_special'
 competitions = loadCompetitions()
 clubs = loadClubs()
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/showSummary',methods=['POST'])
+
+@app.route('/showSummary', methods=['POST'])
 def showSummary():
     email = request.form.get('email', '')
     matching_clubs = [club for club in clubs if club['email'] == email]
@@ -59,53 +68,78 @@ def showSummary():
         flash("Sorry, that email was not found.")
         return redirect(url_for('index'))
     club = matching_clubs[0]
-    return render_template('welcome.html',club=club,competitions=competitions)
-
+    return render_template(
+        'welcome.html', club=club, competitions=competitions
+    )
 
 
 @app.route('/book/<competition>/<club>')
-def book(competition,club):
+def book(competition, club):
     foundClub = next((c for c in clubs if c['name'] == club), None)
-    foundCompetition = next((c for c in competitions if c['name'] == competition), None)
+    foundCompetition = next(
+        (c for c in competitions if c['name'] == competition), None
+    )
     if foundClub and foundCompetition:
         if isPast(foundCompetition):
             flash('This competition is already over.')
-            return render_template('welcome.html', club=foundClub, competitions=competitions)
-        return render_template('booking.html',club=foundClub,competition=foundCompetition)
+            return render_template(
+                'welcome.html', club=foundClub, competitions=competitions
+            )
+        return render_template(
+            'booking.html', club=foundClub, competition=foundCompetition
+        )
     flash("Something went wrong-please try again")
     return redirect(url_for('index'))
 
-@app.route('/purchasePlaces',methods=['POST'])
+
+@app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
-    competition = next((c for c in competitions if c['name'] == request.form.get('competition')), None)
-    club = next((c for c in clubs if c['name'] == request.form.get('club')), None)
+    competition = next(
+        (c for c in competitions
+         if c['name'] == request.form.get('competition')),
+        None,
+    )
+    club = next(
+        (c for c in clubs if c['name'] == request.form.get('club')),
+        None,
+    )
     if not competition or not club:
         flash("Something went wrong-please try again")
         return redirect(url_for('index'))
     if isPast(competition):
         flash('This competition is already over.')
-        return render_template('welcome.html', club=club, competitions=competitions)
+        return render_template(
+            'welcome.html', club=club, competitions=competitions
+        )
     placesRequired = parsePlaces(request.form.get('places'))
     if placesRequired is None:
         flash('Please enter a valid number of places.')
-        return render_template('welcome.html', club=club, competitions=competitions)
+        return render_template(
+            'welcome.html', club=club, competitions=competitions
+        )
     error = getPurchaseError(club, competition, placesRequired)
     if error:
         flash(error)
-        return render_template('welcome.html', club=club, competitions=competitions)
+        return render_template(
+            'welcome.html', club=club, competitions=competitions
+        )
     booked = competition.setdefault('bookedPlaces', {})
     alreadyBooked = booked.get(club['name'], 0)
-    competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
-    club['points'] = int(club['points'])-placesRequired
+    competition['numberOfPlaces'] = (
+        int(competition['numberOfPlaces']) - placesRequired
+    )
+    club['points'] = int(club['points']) - placesRequired
     booked[club['name']] = alreadyBooked + placesRequired
 
     flash('Great-booking complete!')
-    return render_template('welcome.html', club=club, competitions=competitions)
+    return render_template(
+        'welcome.html', club=club, competitions=competitions
+    )
+
 
 @app.route('/pointsDisplay')
 def pointsDisplay():
     return render_template('points.html', clubs=clubs)
-
 
 
 @app.route('/logout')
@@ -114,4 +148,4 @@ def logout():
 
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
