@@ -65,7 +65,7 @@ def showSummary():
     email = request.form.get('email', '')
     matching_clubs = [club for club in clubs if club['email'] == email]
     if not matching_clubs:
-        flash("Sorry, that email was not found.")
+        flash("Sorry, that email was not found.", 'error')
         return redirect(url_for('index'))
     club = matching_clubs[0]
     return render_template(
@@ -81,14 +81,14 @@ def book(competition, club):
     )
     if foundClub and foundCompetition:
         if isPast(foundCompetition):
-            flash('This competition is already over.')
+            flash('This competition is already over.', 'error')
             return render_template(
                 'welcome.html', club=foundClub, competitions=competitions
             )
         return render_template(
             'booking.html', club=foundClub, competition=foundCompetition
         )
-    flash("Something went wrong-please try again")
+    flash("Something went wrong-please try again", 'error')
     return redirect(url_for('index'))
 
 
@@ -104,22 +104,22 @@ def purchasePlaces():
         None,
     )
     if not competition or not club:
-        flash("Something went wrong-please try again")
+        flash("Something went wrong-please try again", 'error')
         return redirect(url_for('index'))
     if isPast(competition):
-        flash('This competition is already over.')
+        flash('This competition is already over.', 'error')
         return render_template(
             'welcome.html', club=club, competitions=competitions
         )
     placesRequired = parsePlaces(request.form.get('places'))
     if placesRequired is None:
-        flash('Please enter a valid number of places.')
+        flash('Please enter a valid number of places.', 'error')
         return render_template(
             'welcome.html', club=club, competitions=competitions
         )
     error = getPurchaseError(club, competition, placesRequired)
     if error:
-        flash(error)
+        flash(error, 'error')
         return render_template(
             'welcome.html', club=club, competitions=competitions
         )
@@ -131,7 +131,7 @@ def purchasePlaces():
     club['points'] = int(club['points']) - placesRequired
     booked[club['name']] = alreadyBooked + placesRequired
 
-    flash('Great-booking complete!')
+    flash('Great-booking complete!', 'success')
     return render_template(
         'welcome.html', club=club, competitions=competitions
     )

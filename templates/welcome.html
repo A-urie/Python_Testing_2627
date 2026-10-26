@@ -1,36 +1,35 @@
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Summary | GUDLFT Registration</title>
-</head>
-<body>
-        <h2>Welcome, {{club['email']}} </h2><a href="{{url_for('logout')}}">Logout</a>
+{% extends "base.html" %}
+{% block title %}Summary{% endblock %}
+{% block nav_extra %}
+<span class="user">{{ club['email'] }}</span>
+<a href="{{ url_for('logout') }}">Logout</a>
+{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Welcome, {{ club['name'] }}</h1>
+        <p class="muted">Choose a competition to book places.</p>
+    </div>
+    <div class="points-box">
+        <strong>{{ club['points'] }}</strong>
+        Points available
+    </div>
+</div>
 
-    {% with messages = get_flashed_messages()%}
-    {% if messages %}
-        <ul>
-       {% for message in messages %}
-            <li>{{message}}</li>
-        {% endfor %}
-       </ul>
-    {% endif%}
-    Points available: {{club['points']}}
-    <h3>Competitions:</h3>
-    <ul>
-        {% for comp in competitions%}
-        <li>
-            {{comp['name']}}<br />
-            Date: {{comp['date']}}</br>
-            Number of Places: {{comp['numberOfPlaces']}}
-            {%if comp['numberOfPlaces']|int >0%}
-            <a href="{{ url_for('book',competition=comp['name'],club=club['name']) }}">Book Places</a>
-            {%endif%}
-        </li>
-        <hr />
-        {% endfor %}
-    </ul>
-    {%endwith%}
-
-</body>
-</html>
+<h2>Competitions</h2>
+<div class="competitions">
+    {% for comp in competitions %}
+    <article class="card competition">
+        <h3>{{ comp['name'] }}</h3>
+        <div class="date">{{ comp['date'] }}</div>
+        {% if comp['numberOfPlaces']|int > 0 %}
+        <span class="badge">{{ comp['numberOfPlaces'] }} places left</span>
+        <a class="btn"
+           href="{{ url_for('book', competition=comp['name'], club=club['name']) }}">Book places</a>
+        {% else %}
+        <span class="badge full">Full</span>
+        {% endif %}
+    </article>
+    {% endfor %}
+</div>
+{% endblock %}

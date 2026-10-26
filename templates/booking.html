@@ -1,17 +1,25 @@
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking for {{competition['name']}} || GUDLFT</title>
-</head>
-<body>
-    <h2>{{competition['name']}}</h2>
-    Places available: {{competition['numberOfPlaces']}}
-    <form action="/purchasePlaces" method="post">
-        <input type="hidden" name="club" value="{{club['name']}}">
-        <input type="hidden" name="competition" value="{{competition['name']}}">
-        <label for="places">How many places?</label><input type="number" name="places" id=""/>
-        <button type="submit">Book</button>
+{% extends "base.html" %}
+{% block title %}Booking for {{ competition['name'] }}{% endblock %}
+{% block nav_extra %}
+<span class="user">{{ club['email'] }}</span>
+<a href="{{ url_for('logout') }}">Logout</a>
+{% endblock %}
+{% block content %}
+<section class="card card-narrow">
+    <h1>{{ competition['name'] }}</h1>
+    <p class="muted">Date: {{ competition['date'] }}</p>
+    <p>Places available: {{ competition['numberOfPlaces'] }}</p>
+    <form action="{{ url_for('purchasePlaces') }}" method="post" class="form">
+        <input type="hidden" name="club" value="{{ club['name'] }}">
+        <input type="hidden" name="competition"
+               value="{{ competition['name'] }}">
+        <label for="places">How many places?</label>
+        <input type="number" name="places" id="places" min="1" max="12"
+               required>
+        <button type="submit" class="btn">Book</button>
     </form>
-</body>
-</html>
+    <p>
+        <a class="btn btn-secondary" href="javascript:history.back()">Back</a>
+    </p>
+</section>
+{% endblock %}
